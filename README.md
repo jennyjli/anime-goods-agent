@@ -63,23 +63,25 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 anime-goods-agent/
 ├── src/
 │   ├── app/
-│   │   ├── api/                           # API routes
+│   │   ├── api/
 │   │   │   ├── upload/route.ts           # Legacy image upload endpoint
 │   │   │   ├── analyze/route.ts          # Gemini image analysis endpoint
 │   │   │   └── search/route.ts           # Tavily merchandise search endpoint
 │   │   ├── layout.tsx                    # Root layout with Tailwind styling
 │   │   ├── page.tsx                      # Home page
 │   │   └── globals.css                   # Global styles & Tailwind imports
-│   ├── components/                       # React components
-│   │   ├── HeroSection.tsx               # Hero section with analysis integration
+│   ├── components/
+│   │   ├── HeroSection.tsx               # Main hero with full agent flow
 │   │   ├── ImageUploadZone.tsx           # Drag & drop upload component
 │   │   ├── AnalysisResults.tsx           # Image analysis results display
-│   │   └── SearchResults.tsx             # Merchandise search results display
-│   └── lib/                              # Utility functions & services
+│   │   ├── SearchResults.tsx             # Legacy search results display
+│   │   └── ResultsDisplay.tsx            # Bento grid results with terminal trace
+│   └── lib/
 │       ├── types.ts                      # TypeScript types and interfaces
 │       ├── utils.ts                      # Helper utility functions
 │       ├── useAnalyzeImage.ts            # React hook for image analysis
 │       ├── useSearch.ts                  # React hook for merchandise search
+│       ├── useReasoningTrace.ts          # React hook for agent trace
 │       └── SearchService.ts              # Tavily API search service
 ├── public/                               # Static assets
 ├── package.json                          # Dependencies
@@ -97,7 +99,9 @@ Main landing page component featuring:
 - Subtitle with key features
 - Image upload zone integration
 - Real-time analysis display
-- Feature cards highlight
+- Real-time merchandise search
+- Integrated reasoning trace
+- Automatic search-after-analysis flow
 
 ### ImageUploadZone
 Interactive image upload component with:
@@ -115,15 +119,75 @@ Displays image analysis output with:
 - Copy-to-clipboard for each field
 - Loading and error states
 
-### SearchResults
-Displays merchandise search findings with:
-- Platform indicators (Mercari/Suruga-Ya)
-- Product pricing in Japanese format
-- Item condition status
-- Availability status (In Stock/Sold Out)
-- Price statistics and range
-- Direct links to purchase pages
-- Results sorted by availability and price
+### SearchResults (Legacy)
+Alternative results display component
+
+### ResultsDisplay (New - Bento Grid)
+Advanced merchandise search results with:
+- **Bento Grid Layout**: Responsive grid that features top item (larger card)
+- **Smart Ranking**: In-stock items always appear first, sorted by price
+- **Trusted Shop Badge**: Suruga-Ya links highlighted with premium badge
+- **Terminal-Style Sidebar**: Real-time reasoning trace showing:
+  - Image analysis progress
+  - Search operations
+  - Result processing
+  - Success/error indicators
+  - Color-coded output (cyan/green/red/yellow)
+- **Expandable Terminal**: Click to minimize/expand the agent trace
+- **View Buttons**: Direct links to purchase on Japanese sites
+- **Status Indicators**: Clear availability and condition badges
+- **Platform Badges**: Distinct visual for Mercari vs Suruga-Ya
+
+### useReasoningTrace Hook
+Manages the agent reasoning state:
+- Track operation progress with typed traces
+- Timestamps for each operation
+- Auto-scrolling terminal output
+- Clear/reset functionality
+
+**Trace Types**: info, success, warning, error
+
+## User Interface Features
+
+### Real-Time Agent Trace Terminal
+The application includes a floating terminal sidebar that shows all operations in real-time:
+
+```
+$ anime-agent --verbose
+> Image selected: figure.jpg
+> Starting image analysis...
+> Initializing Gemini Vision model...
+✓ Analysis complete! Found: Eren Yeager
+> Series: Attack on Titan
+> Initiating Tavily search on Japanese sites...
+> Keywords: 進撃の巨人, エレン, フィギュア, 2015
+> Querying Mercari Japan (jp.mercari.com)...
+> Querying Suruga-Y (suruga-ya.jp)...
+✓ Found 12 total items
+✓ 8 items in stock
+```
+
+**Features:**
+- Color-coded messages (cyan=info, green=success, yellow=warning, red=error)
+- Auto-scrolling to latest message
+- Collapsible sidebar (click chevron to minimize)
+- Timestamps for each operation
+- Shows search progress and results summary
+
+### Bento Grid Results Layout
+Results are displayed in a modern responsive grid:
+- **Featured Item**: First available in-stock item with price gets a larger card
+- **Smart Sorting**: Items sorted by availability (in-stock first) then by price
+- **Platform Indicators**: Blue badges for Mercari, cyan for Suruga-Ya
+- **Trusted Shop Badge**: Gold/amber badge specifically for Suruga-Ya items
+- **Stock Status**: Green checkmark for in-stock, red X for sold out
+- **Condition Tags**: Shows product condition (New, Used, Good, Like New, etc.)
+- **Direct Purchase Links**: "View on Japanese Site" buttons open listings in new tab
+
+### Responsive Design
+- Mobile: 1 column grid
+- Tablet: 2 column grid
+- Desktop: 3 column grid with featured (2x2) items
 
 ## Environment Variables
 
@@ -306,6 +370,10 @@ Search for merchandise on Japanese auction sites (Mercari & Suruga-Ya) using key
 - [ ] Social sharing features for trends
 - [ ] Multi-image batch analysis
 - [ ] Custom merchandise recognition model training
+- [ ] Compare pricing across different shops
+- [ ] Wishlist and price alert functionality
+- [ ] Export results to CSV/PDF
+- [ ] Dark mode refinement with theme customization
 
 ## Contributing
 

@@ -4,27 +4,67 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { ImageUploadZone } from './ImageUploadZone'
 import { AnalysisResults } from './AnalysisResults'
+import { ResultsDisplay } from './ResultsDisplay'
 import { useAnalyzeImage } from '@/lib/useAnalyzeImage'
+import { useSearch } from '@/lib/useSearch'
+import { useReasoningTrace } from '@/lib/useReasoningTrace'
 import { Sparkles } from 'lucide-react'
 
 export const HeroSection: React.FC = () => {
   const { isLoading, error, result, analyzeImage, reset } = useAnalyzeImage()
+  const { isLoading: searchLoading, results: searchResults, search } = useSearch()
+  const { traces, addTrace, clearTraces } = useReasoningTrace()
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
+  const [showSearch, setShowSearch] = React.useState(false)
 
   const handleImageSelect = (file: File) => {
     setSelectedFile(file)
+    clearTraces()
+    addTrace('Image selected: ' + file.name, 'info')
     console.log('Image selected:', file.name)
   }
 
   const handleAnalyze = async () => {
     if (selectedFile) {
+      clearTraces()
+      addTrace('Starting image analysis...', 'info')
+      addTrace('Initializing Gemini Vision model...', 'info')
+      
       await analyzeImage(selectedFile)
     }
   }
 
+  // Automatically search when analysis is complete
+  React.useEffect(() => {
+    if (result && !error && !searchLoading && !showSearch) {
+      addTrace(`Analysis complete! Found: ${result.character}`, 'success')
+      addTrace(`Series: ${result.series}`, 'info')
+      addTrace(`Initiating Tavily search on Japanese sites...`, 'info')
+      addTrace(`Keywords: ${result.jpKeywords}`, 'info')
+      
+      // Auto-search after a short delay
+      const timer = setTimeout(() => {
+        setShowSearch(true)
+        search(result.jpKeywords)
+      }, 800)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [result, error, searchLoading, showSearch])
+
+  // Add search progress traces
+  React.useEffect(() => {
+    if (searchLoading && showSearch) {
+      addTrace('Querying Mercari Japan (jp.mercari.com)...', 'info')
+      addTrace('Querying Suruga-Y (suruga-ya.jp)...', 'info')
+    }
+  }, [searchLoading, showSearch])
+
   const handleReset = () => {
     reset()
     setSelectedFile(null)
+    setShowSearch(false)
+    clearTraces()
   }
 
   const containerVariants = {
@@ -116,6 +156,16 @@ export const HeroSection: React.FC = () => {
           error={error}
           onReset={handleReset}
         />
+
+        {/* Search Results Display */}
+        {showSearch && result && (
+          <ResultsDisplay
+            results={searchResults}
+            analysisData={result}
+            reasoning={traces}
+            isLoading={searchLoading}
+          />
+        )}
 
         {/* CTA buttons - Only show when no result/error */}
         {!result && !error && (
