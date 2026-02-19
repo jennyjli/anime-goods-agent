@@ -9,7 +9,7 @@ Upload an image of a collectible item. The agent identifies what it likely is, g
 
 The goal is to reduce friction between visual discovery and actionable marketplace search.
 
-![demo gif]
+![demo.gif]
 
 ## Why This Exists
 
