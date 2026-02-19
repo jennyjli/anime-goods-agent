@@ -57,7 +57,9 @@ export async function POST(
 
     // Use searchKeyword directly as provided by Gemini analysis
     // No modification to the keyword
+    console.log('🔎 [Search API] searchKeyword:', searchKeyword)
     const results = await searchMerchandise(searchKeyword)
+    console.log('🔎 [Search API] Got', results.length, 'results')
 
     // Get search statistics
     const stats = getSearchStats(results)

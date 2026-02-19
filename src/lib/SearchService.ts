@@ -19,12 +19,17 @@ const SITE_RESTRICTIONS = [
 function isValidProductUrl(url: string): boolean {
   // Mercari: must match jp.mercari.com/item/m...
   if (url.includes('mercari.com')) {
-    return /jp\.mercari\.com\/item\/m[a-zA-Z0-9]+/.test(url)
+    const isValid = /jp\.mercari\.com\/item\/m[a-zA-Z0-9]+/.test(url)
+    if (!isValid) console.log('   Invalid Mercari URL:', url)
+    return isValid
   }
   // Suruga-Ya: must match suruga-ya.jp/product/detail/...
   if (url.includes('suruga-ya.jp')) {
-    return /suruga-ya\.jp\/product\/detail\/[0-9]+/.test(url)
+    const isValid = /suruga-ya\.jp\/product\/detail\/[0-9]+/.test(url)
+    if (!isValid) console.log('   Invalid Suruga-Ya URL:', url)
+    return isValid
   }
+  console.log('   Not from Mercari or Suruga-Ya:', url)
   return false
 }
 
@@ -167,11 +172,11 @@ function buildSearchQuery(keyword: string): string {
   // Use keyword exactly as provided
   const trimmedKeyword = keyword.trim()
 
-  // Combine with site restrictions for Serper format
-  const siteQuery = SITE_RESTRICTIONS.join(' ')
+  // Combine with site restrictions using OR operator for Serper format
+  const siteQuery = SITE_RESTRICTIONS.join(' OR ')
 
-  // Build final query for Serper
-  return `${trimmedKeyword} ${siteQuery}`
+  // Build final query for Serper with proper syntax
+  return `${trimmedKeyword} (${siteQuery})`
 }
 
 /**
@@ -181,11 +186,12 @@ export async function searchMerchandise(keyword: string): Promise<SearchResult[]
   try {
     // Validate API key
     if (!SERPER_API_KEY) {
-      console.error('Serper API key is not configured')
+      console.error('❌ Serper API key is not configured')
       return []
     }
 
     const query = buildSearchQuery(keyword)
+    console.log('🔍 Search Query:', query)
 
     const response = await fetch(SERPER_API_URL, {
       method: 'POST',
@@ -199,21 +205,34 @@ export async function searchMerchandise(keyword: string): Promise<SearchResult[]
       }),
     })
 
+    console.log('📡 Serper API Response Status:', response.status)
+
     if (!response.ok) {
-      console.error('Serper API error:', response.statusText)
+      const errorText = await response.text()
+      console.error('❌ Serper API error:', response.statusText, errorText)
       return []
     }
 
     const data: SerperSearchResponse = await response.json()
+    console.log('📊 Raw Serper Results:', data.organic?.length || 0, 'items')
+    console.log('📋 Raw Results:', JSON.stringify(data.organic?.slice(0, 3), null, 2))
 
     // Parse and clean results from Serper, filtering out null values (invalid URLs)
     const results = (data.organic || [])
-      .map((item) => parseSearchResult({
-        title: item.title,
-        url: item.link,
-        snippet: item.snippet,
-      }))
+      .map((item, idx) => {
+        const parsed = parseSearchResult({
+          title: item.title,
+          url: item.link,
+          snippet: item.snippet,
+        })
+        console.log(`  [${idx + 1}] ${item.title.substring(0, 50)}...`)
+        console.log(`      URL: ${item.link}`)
+        console.log(`      Valid: ${parsed !== null ? '✓' : '✗'}`)
+        return parsed
+      })
       .filter((result): result is SearchResult => result !== null)
+
+    console.log('✅ Filtered Results:', results.length, 'valid products')
 
     // Sort by:
     // 1. Availability (in-stock first)
