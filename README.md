@@ -136,35 +136,26 @@ This is intentionally scoped as a multimodal + retrieval prototype.
 
 #### Phase 1 — Visual Grounding Augmentation
 
-Integrate visual search (Lens-style image search) to supplement Gemini predictions
-
-Use visually similar matches to refine and disambiguate keywords
-
-Surface exact or near-exact match results separately in the results page
-
-Improve franchise / character confidence scoring
+- Integrate visual search (Lens-style image search) to supplement Gemini predictions
+- Use visually similar matches to refine and disambiguate keywords
+- Surface exact or near-exact match results separately in the results page
+- Improve franchise / character confidence scoring
 
 This reduces reliance on model-only inference and introduces retrieval-grounded visual reasoning.
 
 #### Phase 2 — Retrieval Awareness
 
-Smarter availability inference
-
-Duplicate suppression across marketplaces
-
-Improved condition extraction
-
-Structured query expansion (e.g., 非売品, 特典 variants)
+- Smarter availability inference
+- Duplicate suppression across marketplaces
+- Improved condition extraction
+- Structured query expansion (e.g., 非売品, 特典 variants)
 
 #### Phase 3 — Collector Assistance
 
-Text refinement ("same illustration variant")
-
-Alternate artwork detection
-
-Lightweight listing monitoring
-
-Optional historical price estimation
+- Text refinement ("same illustration variant")
+- Alternate artwork detection
+- Lightweight listing monitoring
+- Optional historical price estimation
 
 ## North Star
 
