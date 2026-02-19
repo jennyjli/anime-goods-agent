@@ -65,17 +65,22 @@ anime-goods-agent/
 │   ├── app/
 │   │   ├── api/                           # API routes
 │   │   │   ├── upload/route.ts           # Legacy image upload endpoint
-│   │   │   └── analyze/route.ts          # Gemini image analysis endpoint
+│   │   │   ├── analyze/route.ts          # Gemini image analysis endpoint
+│   │   │   └── search/route.ts           # Tavily merchandise search endpoint
 │   │   ├── layout.tsx                    # Root layout with Tailwind styling
 │   │   ├── page.tsx                      # Home page
 │   │   └── globals.css                   # Global styles & Tailwind imports
 │   ├── components/                       # React components
 │   │   ├── HeroSection.tsx               # Hero section with analysis integration
 │   │   ├── ImageUploadZone.tsx           # Drag & drop upload component
-│   │   └── AnalysisResults.tsx           # Results display component
-│   └── lib/                              # Utility functions
-│       ├── utils.ts                      # Helper functions
-│       └── useAnalyzeImage.ts            # React hook for image analysis
+│   │   ├── AnalysisResults.tsx           # Image analysis results display
+│   │   └── SearchResults.tsx             # Merchandise search results display
+│   └── lib/                              # Utility functions & services
+│       ├── types.ts                      # TypeScript types and interfaces
+│       ├── utils.ts                      # Helper utility functions
+│       ├── useAnalyzeImage.ts            # React hook for image analysis
+│       ├── useSearch.ts                  # React hook for merchandise search
+│       └── SearchService.ts              # Tavily API search service
 ├── public/                               # Static assets
 ├── package.json                          # Dependencies
 ├── tsconfig.json                         # TypeScript config
@@ -90,8 +95,9 @@ anime-goods-agent/
 Main landing page component featuring:
 - Animated gradient title
 - Subtitle with key features
-- Call-to-action buttons
-- Feature cards
+- Image upload zone integration
+- Real-time analysis display
+- Feature cards highlight
 
 ### ImageUploadZone
 Interactive image upload component with:
@@ -100,6 +106,24 @@ Interactive image upload component with:
 - Image preview
 - File size validation
 - Animated interactions
+
+### AnalysisResults
+Displays image analysis output with:
+- Series and character identification
+- Japanese search keywords
+- Analysis reasoning explanation
+- Copy-to-clipboard for each field
+- Loading and error states
+
+### SearchResults
+Displays merchandise search findings with:
+- Platform indicators (Mercari/Suruga-Ya)
+- Product pricing in Japanese format
+- Item condition status
+- Availability status (In Stock/Sold Out)
+- Price statistics and range
+- Direct links to purchase pages
+- Results sorted by availability and price
 
 ## Environment Variables
 
@@ -110,14 +134,19 @@ Create a `.env.local` file with the following:
 # Get your free API key at: https://aistudio.google.com/app/apikey
 GOOGLE_GENERATIVE_AI_API_KEY=your_api_key_here
 
+# Tavily API Key (for Japanese merchandise search on Mercari & Suruga-Ya)
+# Get your free API key at: https://tavily.com
+TAVILY_API_KEY=your_tavily_api_key_here
+
 # Optional: API Configuration
 # NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
 **Important:** 
-- Your API key should be kept private and never committed to version control
+- Your API keys should be kept private and never committed to version control
 - Use `.env.local` for local development (already in `.gitignore`)
 - For production, configure environment variables in your deployment platform (Vercel, etc.)
+- Both API services offer free tiers with generous usage limits
 
 ## Development Commands
 
@@ -209,6 +238,63 @@ Analyze an anime image using Gemini 1.5 Flash to identify merchandise details an
 - Mercari-optimized search keywords
 - Detailed reasoning for identification
 - Safety content filtering
+
+### POST /api/search
+Search for merchandise on Japanese auction sites (Mercari & Suruga-Ya) using keywords from image analysis.
+
+**Request:**
+```json
+{
+  "jpKeywords": "進撃の巨人, エレン, フィギュア, 2015",
+  "maxPrice": 5000,
+  "condition": "Used",
+  "platform": "Mercari"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "results": [
+    {
+      "platform": "Mercari",
+      "title": "[進撃の巨人] エレン フィギュア 2015年版",
+      "price": "¥3,500",
+      "condition": "Used",
+      "link": "https://jp.mercari.com/item/m12345678",
+      "isAvailable": true
+    },
+    {
+      "platform": "Suruga-Ya",
+      "title": "進撃の巨人 エレン・イェーガー 1/8 フィギュア",
+      "price": "¥4,200",
+      "condition": "Good",
+      "link": "https://www.suruga-ya.jp/product/8901234",
+      "isAvailable": true
+    }
+  ],
+  "stats": {
+    "totalResults": 12,
+    "availableCount": 8,
+    "unavailableCount": 4,
+    "priceRange": {
+      "min": 2800,
+      "max": 5500,
+      "average": 3875
+    }
+  },
+  "query": "進撃の巨人, エレン, フィギュア, 2015"
+}
+```
+
+**Features:**
+- Searches only Mercari (jp.mercari.com) and Suruga-Ya (suruga-ya.jp)
+- Extracts price in Japanese format (¥1,000 or 1000円)
+- Detects item condition (New, Used, Good, Like New, etc.)
+- Checks for sold-out status ('売り切れ')
+- Sorts results by availability and price
+- Provides price statistics and analysis
+- Optional filtering by price, condition, or platform
 
 ## Future Enhancements
 
