@@ -2,6 +2,8 @@
 
 An AI-powered platform for discovering anime merchandise through image analysis. Upload a screenshot or artwork of your favorite anime character, and let our agent help you find similar products, pricing, and recommendations.
 
+![Demo](demo.gif)
+
 ## Features
 
 - 🎨 **Dark Mode with Google-Clean Aesthetic** - Modern, minimalist UI design
