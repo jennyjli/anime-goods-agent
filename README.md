@@ -63,22 +63,25 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 anime-goods-agent/
 ├── src/
 │   ├── app/
-│   │   ├── api/              # API routes
-│   │   │   └── upload/       # Image upload endpoint
-│   │   ├── layout.tsx         # Root layout
-│   │   ├── page.tsx           # Home page
-│   │   └── globals.css        # Global styles
-│   ├── components/            # React components
-│   │   ├── HeroSection.tsx    # Hero section with title
-│   │   └── ImageUploadZone.tsx # Image upload component
-│   └── lib/                   # Utility functions
-│       └── utils.ts           # Helper functions
-├── public/                    # Static assets
-├── package.json               # Dependencies
-├── tsconfig.json              # TypeScript config
-├── next.config.js             # Next.js config
-├── tailwind.config.ts         # Tailwind CSS config
-└── postcss.config.js          # PostCSS config
+│   │   ├── api/                           # API routes
+│   │   │   ├── upload/route.ts           # Legacy image upload endpoint
+│   │   │   └── analyze/route.ts          # Gemini image analysis endpoint
+│   │   ├── layout.tsx                    # Root layout with Tailwind styling
+│   │   ├── page.tsx                      # Home page
+│   │   └── globals.css                   # Global styles & Tailwind imports
+│   ├── components/                       # React components
+│   │   ├── HeroSection.tsx               # Hero section with analysis integration
+│   │   ├── ImageUploadZone.tsx           # Drag & drop upload component
+│   │   └── AnalysisResults.tsx           # Results display component
+│   └── lib/                              # Utility functions
+│       ├── utils.ts                      # Helper functions
+│       └── useAnalyzeImage.ts            # React hook for image analysis
+├── public/                               # Static assets
+├── package.json                          # Dependencies
+├── tsconfig.json                         # TypeScript config
+├── next.config.js                        # Next.js config
+├── tailwind.config.ts                    # Tailwind CSS config
+└── postcss.config.js                     # PostCSS config
 ```
 
 ## Component Details
@@ -103,13 +106,18 @@ Interactive image upload component with:
 Create a `.env.local` file with the following:
 
 ```env
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3000
+# Google Generative AI API Key (for Gemini image analysis)
+# Get your free API key at: https://aistudio.google.com/app/apikey
+GOOGLE_GENERATIVE_AI_API_KEY=your_api_key_here
 
-# Add your service integrations here
-# NEXT_PUBLIC_STRIPE_KEY=your_key
-# NEXT_PUBLIC_ANALYTICS_ID=your_id
+# Optional: API Configuration
+# NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
+
+**Important:** 
+- Your API key should be kept private and never committed to version control
+- Use `.env.local` for local development (already in `.gitignore`)
+- For production, configure environment variables in your deployment platform (Vercel, etc.)
 
 ## Development Commands
 
@@ -141,14 +149,12 @@ Alternative platforms: Netlify, AWS Amplify, Railway, etc.
 ## API Endpoints
 
 ### POST /api/upload
-Upload and analyze an anime image.
+Upload an anime image (legacy endpoint).
 
 **Request:**
-```
-Content-Type: multipart/form-data
-
+```json
 {
-  file: File
+  "file": File
 }
 ```
 
@@ -164,15 +170,56 @@ Content-Type: multipart/form-data
 }
 ```
 
+### POST /api/analyze
+Analyze an anime image using Gemini 1.5 Flash to identify merchandise details and Japanese search keywords.
+
+**Request:**
+```json
+{
+  "image": "base64_encoded_image_data",
+  "mimeType": "image/jpeg"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "series": "Attack on Titan",
+  "character": "Eren Yeager",
+  "jpKeywords": "進撃の巨人, エレン, フィギュア, 2015",
+  "reasoning": "This is a figure of Eren Yeager from Attack on Titan series, appears to be from 2015 release based on sculpt style. Keywords include series name, character name, product type, and estimated year."
+}
+```
+
+**Response (Error - Non-anime or blurry image):**
+```json
+{
+  "error": "Image validation failed",
+  "details": "Image does not appear to contain anime-related content"
+}
+```
+
+**Error Codes:**
+- `400`: Image validation failed (blurry, non-anime, or invalid format)
+- `500`: API configuration error or analysis processing failed
+
+**Features:**
+- Automatic image validation (must be anime-related and clear)
+- Japanese merchandise expert analysis
+- Mercari-optimized search keywords
+- Detailed reasoning for identification
+- Safety content filtering
+
 ## Future Enhancements
 
-- [ ] Integration with AI vision models (Claude Vision, GPT-4V)
-- [ ] Real-time product matching
-- [ ] User authentication and history
-- [ ] Price comparison across retailers
-- [ ] Wishlist and favorites
-- [ ] Social sharing features
-- [ ] Advanced filtering options
+- [ ] Store analysis history in database
+- [ ] User authentication and accounts
+- [ ] Real-time price tracking across retailers
+- [ ] Integration with Mercari API for direct product matching
+- [ ] Advanced filtering by product type (figures, cards, clothing, etc.)
+- [ ] Social sharing features for trends
+- [ ] Multi-image batch analysis
+- [ ] Custom merchandise recognition model training
 
 ## Contributing
 

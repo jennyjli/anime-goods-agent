@@ -3,12 +3,28 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { ImageUploadZone } from './ImageUploadZone'
+import { AnalysisResults } from './AnalysisResults'
+import { useAnalyzeImage } from '@/lib/useAnalyzeImage'
 import { Sparkles } from 'lucide-react'
 
 export const HeroSection: React.FC = () => {
+  const { isLoading, error, result, analyzeImage, reset } = useAnalyzeImage()
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
+
   const handleImageSelect = (file: File) => {
+    setSelectedFile(file)
     console.log('Image selected:', file.name)
-    // Handle image upload logic here
+  }
+
+  const handleAnalyze = async () => {
+    if (selectedFile) {
+      await analyzeImage(selectedFile)
+    }
+  }
+
+  const handleReset = () => {
+    reset()
+    setSelectedFile(null)
   }
 
   const containerVariants = {
@@ -93,50 +109,64 @@ export const HeroSection: React.FC = () => {
           <ImageUploadZone onImageSelect={handleImageSelect} />
         </motion.div>
 
-        {/* CTA buttons */}
-        <motion.div
-          variants={itemVariants}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-          <motion.button
-            whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(59, 130, 246, 0.4)' }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold transition-all duration-300 cursor-pointer"
-          >
-            Analyze Image
-          </motion.button>
+        {/* Analysis Results */}
+        <AnalysisResults
+          result={result}
+          isLoading={isLoading}
+          error={error}
+          onReset={handleReset}
+        />
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-3 rounded-lg border border-gray-600 hover:border-gray-400 text-white font-semibold transition-all duration-300 hover:bg-white/5 cursor-pointer"
+        {/* CTA buttons - Only show when no result/error */}
+        {!result && !error && (
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            Learn More
-          </motion.button>
-        </motion.div>
+            <motion.button
+              whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(59, 130, 246, 0.4)' }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleAnalyze}
+              disabled={!selectedFile || isLoading}
+              className="px-8 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Analyzing...' : 'Analyze Image'}
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-8 py-3 rounded-lg border border-gray-600 hover:border-gray-400 text-white font-semibold transition-all duration-300 hover:bg-white/5 cursor-pointer"
+            >
+              Learn More
+            </motion.button>
+          </motion.div>
+        )}
 
         {/* Features row */}
-        <motion.div
-          variants={itemVariants}
-          className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center"
-        >
-          {[
-            { label: 'Instant Analysis', desc: 'Get results in seconds' },
-            { label: 'Smart Matching', desc: 'Find similar products' },
-            { label: 'Verified Sources', desc: 'Trusted retailers only' },
-          ].map((feature, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
-              className="p-4 rounded-lg border border-dark-border/50 bg-dark-surface/30 backdrop-blur-sm"
-            >
-              <p className="font-semibold text-white mb-1">{feature.label}</p>
-              <p className="text-sm text-gray-500">{feature.desc}</p>
-            </motion.div>
-          ))}
-        </motion.div>
+        {!result && !error && (
+          <motion.div
+            variants={itemVariants}
+            className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center"
+          >
+            {[
+              { label: 'Instant Analysis', desc: 'Get results in seconds' },
+              { label: 'Smart Matching', desc: 'Find similar products' },
+              { label: 'Verified Sources', desc: 'Trusted retailers only' },
+            ].map((feature, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
+                className="p-4 rounded-lg border border-dark-border/50 bg-dark-surface/30 backdrop-blur-sm"
+              >
+                <p className="font-semibold text-white mb-1">{feature.label}</p>
+                <p className="text-sm text-gray-500">{feature.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
     </motion.section>
   )
