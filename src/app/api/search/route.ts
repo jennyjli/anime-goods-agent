@@ -55,7 +55,8 @@ export async function POST(
       )
     }
 
-    // Perform search
+    // Perform search with EXACT keywords (no modification)
+    // Keywords are preserved from analysis step to ensure sync
     const results = await searchMerchandise(jpKeywords)
 
     // Get search statistics

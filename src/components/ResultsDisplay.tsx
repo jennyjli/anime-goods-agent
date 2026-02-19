@@ -256,13 +256,26 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   isLoading,
   onViewMore,
 }) => {
-  // Sort results: in-stock first, then by price
+  // Sort results:
+  // 1. In-stock first
+  // 2. For in-stock: items WITH price first, then items WITHOUT price
+  // 3. Then by price (lowest first)
   const sortedResults = useMemo(() => {
     return [...results].sort((a, b) => {
       // In-stock items first
       if (a.isAvailable !== b.isAvailable) {
         return a.isAvailable ? -1 : 1
       }
+      
+      // For in-stock items, prioritize those with price available
+      if (a.isAvailable && b.isAvailable) {
+        const aHasPrice = a.price !== null
+        const bHasPrice = b.price !== null
+        if (aHasPrice !== bHasPrice) {
+          return aHasPrice ? -1 : 1 // Items with price appear first
+        }
+      }
+      
       // Then by price (lowest first)
       if (a.price && b.price) {
         const priceA = parseInt(a.price.replace(/[^\d]/g, ''), 10)

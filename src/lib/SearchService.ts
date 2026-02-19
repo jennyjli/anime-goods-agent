@@ -14,6 +14,21 @@ const SITE_RESTRICTIONS = [
 ]
 
 /**
+ * Check if URL is a valid product page (not a search/listing page)
+ */
+function isValidProductUrl(url: string): boolean {
+  // Mercari: must match jp.mercari.com/item/m...
+  if (url.includes('mercari.com')) {
+    return /jp\.mercari\.com\/item\/m[a-zA-Z0-9]+/.test(url)
+  }
+  // Suruga-Ya: must match suruga-ya.jp/product/detail/...
+  if (url.includes('suruga-ya.jp')) {
+    return /suruga-ya\.jp\/product\/detail\/[0-9]+/.test(url)
+  }
+  return false
+}
+
+/**
  * Extract platform name from URL
  */
 function getPlatformFromUrl(url: string): 'Mercari' | 'Suruga-Ya' {
@@ -113,6 +128,7 @@ function checkAvailability(text: string): boolean {
 
 /**
  * Clean and parse a single search result
+ * Returns null if URL is not a valid product page
  */
 function parseSearchResult(
   item: {
@@ -121,7 +137,12 @@ function parseSearchResult(
     snippet: string
     content?: string
   }
-): SearchResult {
+): SearchResult | null {
+  // Only accept valid product page URLs
+  if (!isValidProductUrl(item.url)) {
+    return null
+  }
+
   const combinedText = `${item.title} ${item.snippet} ${item.content || ''}`
   const platform = getPlatformFromUrl(item.url)
   const price = extractPrice(combinedText)
@@ -140,19 +161,18 @@ function parseSearchResult(
 
 /**
  * Build search query with site restrictions
+ * Uses EXACT jpKeywords without modification to ensure sync with UI display
  */
 function buildSearchQuery(jpKeywords: string): string {
-  // jpKeywords is comma-separated
-  const keywords = jpKeywords.split(',').map((k) => k.trim())
-
-  // Use the first keyword or all concatenated
-  const mainKeyword = keywords[0] || jpKeywords
+  // Use jpKeywords exactly as provided - no modification, translation, or optimization
+  // jpKeywords is already formatted by Gemini analysis
+  const trimmedKeywords = jpKeywords.trim()
 
   // Combine with site restrictions
   const siteQuery = SITE_RESTRICTIONS.join(' OR ')
 
-  // Build final query: keywords with site restrictions
-  return `(${mainKeyword}) (${siteQuery})`
+  // Build final query: keywords with site restrictions (no modification)
+  return `(${trimmedKeywords}) (${siteQuery})`
 }
 
 /**
@@ -189,14 +209,30 @@ export async function searchMerchandise(jpKeywords: string): Promise<SearchResul
 
     const data: TavilySearchResponse = await response.json()
 
-    // Parse and clean results
-    const results = data.results.map(parseSearchResult)
+    // Parse and clean results, filtering out null values (invalid URLs)
+    const results = data.results
+      .map(parseSearchResult)
+      .filter((result): result is SearchResult => result !== null)
 
-    // Sort by availability (available first) then by price if available
+    // Sort by:
+    // 1. Availability (in-stock first)
+    // 2. For in-stock items: price available first, then by price (lowest first)
+    // 3. For sold-out items: just by price
     return results.sort((a, b) => {
       if (a.isAvailable !== b.isAvailable) {
         return a.isAvailable ? -1 : 1
       }
+      
+      // For in-stock items, rank price-available items above price-unavailable
+      if (a.isAvailable && b.isAvailable) {
+        const aHasPrice = a.price !== null
+        const bHasPrice = b.price !== null
+        if (aHasPrice !== bHasPrice) {
+          return aHasPrice ? -1 : 1
+        }
+      }
+      
+      // Sort by price if both have prices
       if (a.price && b.price) {
         const priceA = parseInt(a.price.replace(/[^\d]/g, ''), 10)
         const priceB = parseInt(b.price.replace(/[^\d]/g, ''), 10)

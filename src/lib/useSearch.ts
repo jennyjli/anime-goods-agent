@@ -39,14 +39,15 @@ export function useSearch(): UseSearchResult {
         throw new Error('Search keywords cannot be empty')
       }
 
-      // Call API
+      // Call API with EXACT keywords - no modification
+      // Pass keywords exactly as received from analysis to ensure sync
       const response = await fetch('/api/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          jpKeywords: jpKeywords.trim(),
+          jpKeywords: jpKeywords, // Pass exactly as-is, preserve from analysis
           ...filters,
         }),
       })
