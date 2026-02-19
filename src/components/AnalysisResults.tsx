@@ -197,6 +197,42 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
             )}
           </motion.div>
 
+          {/* Optimized Search Keyword */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.42 }}
+            className="p-4 rounded-lg bg-dark-surface/50 border border-blue-500/30"
+          >
+            <p className="text-sm text-gray-400 mb-1">Optimized Search Keyword</p>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-base font-semibold text-blue-300 break-words">
+                  {result.searchKeyword}
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Concise phrase used for web search
+                </p>
+              </div>
+              <button
+                onClick={() => copyToClipboard(result.searchKeyword, 'searchKeyword')}
+                className="p-2 hover:bg-dark-border rounded-lg transition-colors flex-shrink-0"
+                title="Copy search keyword"
+              >
+                <Copy className="w-4 h-4 text-gray-400 hover:text-gray-200" />
+              </button>
+            </div>
+            {copiedField === 'searchKeyword' && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-xs text-green-400 mt-2"
+              >
+                Copied!
+              </motion.p>
+            )}
+          </motion.div>
+
           {/* Reasoning */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -224,7 +260,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
           </button>
           <button
             onClick={() => {
-              const text = `Series: ${result.series}\nCharacter: ${result.character}\nKeywords: ${result.jpKeywords}\nReasoning: ${result.reasoning}`
+              const text = `Series: ${result.series}\nCharacter: ${result.character}\nKeywords: ${result.jpKeywords}\nSearch Keyword: ${result.searchKeyword}\nReasoning: ${result.reasoning}`
               copyToClipboard(text, 'all')
             }}
             className="flex-1 px-4 py-3 rounded-lg border border-gray-600 hover:border-gray-400 text-white font-semibold transition-colors hover:bg-white/5"

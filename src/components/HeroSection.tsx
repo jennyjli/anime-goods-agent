@@ -40,7 +40,7 @@ export const HeroSection: React.FC = () => {
       addTrace(`Analysis complete! Found: ${result.character}`, 'success')
       addTrace(`Series: ${result.series}`, 'info')
       addTrace(`Keywords: ${result.jpKeywords}`, 'info')
-      addTrace(`Optimizing search keyword...`, 'info')
+      addTrace(`Optimized search keyword: ${result.searchKeyword}`, 'info')
       addTrace(`Initiating Tavily search on Japanese sites...`, 'info')
       
       // Auto-search after a short delay
