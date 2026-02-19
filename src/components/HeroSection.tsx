@@ -39,13 +39,15 @@ export const HeroSection: React.FC = () => {
     if (result && !error && !searchLoading && !showSearch) {
       addTrace(`Analysis complete! Found: ${result.character}`, 'success')
       addTrace(`Series: ${result.series}`, 'info')
-      addTrace(`Keywords: ${result.jpKeywords}`, 'info')      addTrace(`Optimizing search keyword...`, 'info')      addTrace(`Initiating Tavily search on Japanese sites...`, 'info')
+      addTrace(`Keywords: ${result.jpKeywords}`, 'info')
+      addTrace(`Optimizing search keyword...`, 'info')
+      addTrace(`Initiating Tavily search on Japanese sites...`, 'info')
       
       // Auto-search after a short delay
-      // Pass keywords EXACTLY as provided by Gemini - no modification
+      // Use searchKeyword from Gemini (optimized for search)
       const timer = setTimeout(() => {
         setShowSearch(true)
-        search(result.jpKeywords)
+        search(result.searchKeyword)
       }, 800)
       
       return () => clearTimeout(timer)

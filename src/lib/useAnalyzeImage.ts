@@ -4,6 +4,7 @@ export interface AnalysisResult {
   series: string
   character: string
   jpKeywords: string
+  searchKeyword: string
   reasoning: string
 }
 
