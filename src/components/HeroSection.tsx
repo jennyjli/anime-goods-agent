@@ -39,8 +39,7 @@ export const HeroSection: React.FC = () => {
     if (result && !error && !searchLoading && !showSearch) {
       addTrace(`Analysis complete! Found: ${result.character}`, 'success')
       addTrace(`Series: ${result.series}`, 'info')
-      addTrace(`Keywords: ${result.jpKeywords}`, 'info')
-      addTrace(`Initiating Tavily search on Japanese sites...`, 'info')
+      addTrace(`Keywords: ${result.jpKeywords}`, 'info')      addTrace(`Optimizing search keyword...`, 'info')      addTrace(`Initiating Tavily search on Japanese sites...`, 'info')
       
       // Auto-search after a short delay
       // Pass keywords EXACTLY as provided by Gemini - no modification
@@ -56,11 +55,10 @@ export const HeroSection: React.FC = () => {
   // Add search progress traces
   React.useEffect(() => {
     if (searchLoading && showSearch) {
-      addTrace('Simplifying keywords for focused search...', 'info')
-      addTrace('Validating product URLs...', 'info')
       addTrace('Querying Mercari Japan (jp.mercari.com/item/...)...', 'info')
       addTrace('Querying Suruga-Ya (suruga-ya.jp/product/detail/...)...', 'info')
       addTrace('Filtering for individual product pages only...', 'info')
+      addTrace('Ranking results by availability and price...', 'info')
     }
   }, [searchLoading, showSearch])
 

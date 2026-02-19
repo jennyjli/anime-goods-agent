@@ -27,7 +27,7 @@ export function useSearch(): UseSearchResult {
   const [results, setResults] = useState<SearchResult[]>([])
   const [stats, setStats] = useState<SearchStats | null>(null)
 
-  const search = async (jpKeywords: string, filters?: any): Promise<void> => {
+  const search = async (searchKeyword: string, filters?: any): Promise<void> => {
     setIsLoading(true)
     setError(null)
     setResults([])
@@ -35,19 +35,19 @@ export function useSearch(): UseSearchResult {
 
     try {
       // Validate input
-      if (!jpKeywords || jpKeywords.trim().length === 0) {
-        throw new Error('Search keywords cannot be empty')
+      if (!searchKeyword || searchKeyword.trim().length === 0) {
+        throw new Error('Search keyword cannot be empty')
       }
 
-      // Call API with EXACT keywords - no modification
-      // Pass keywords exactly as received from analysis to ensure sync
+      // Call API with searchKeyword from Gemini
+      // Use keyword exactly as provided - no modification
       const response = await fetch('/api/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          jpKeywords: jpKeywords, // Pass exactly as-is, preserve from analysis
+          searchKeyword: searchKeyword, // Gemini-optimized search keyword (no modification)
           ...filters,
         }),
       })

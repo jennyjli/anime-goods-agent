@@ -9,6 +9,7 @@ interface AnalysisResponse {
   series: string
   character: string
   jpKeywords: string
+  searchKeyword: string
   reasoning: string
 }
 
@@ -126,13 +127,15 @@ async function analyzeImage(
 1. series: The name of the anime/manga series
 2. character: The specific character's name
 3. jpKeywords: Comma-separated Japanese search keywords used on Mercari (be specific with product type and year if visible)
-4. reasoning: Brief explanation of your analysis
+4. searchKeyword: A single, most concise yet descriptive Japanese keyword/phrase for web search (e.g., "ハツネミク フィギュア" or "鬼滅 竈門炭治郎")
+5. reasoning: Brief explanation of your analysis
 
 Return ONLY valid JSON in this exact format:
 {
   "series": "string",
   "character": "string",
   "jpKeywords": "string",
+  "searchKeyword": "string",
   "reasoning": "string"
 }`
 
@@ -157,7 +160,7 @@ Return ONLY valid JSON in this exact format:
   const result = JSON.parse(jsonMatch[0]) as AnalysisResponse
 
   // Validate required fields
-  if (!result.series || !result.character || !result.jpKeywords) {
+  if (!result.series || !result.character || !result.jpKeywords || !result.searchKeyword) {
     throw new Error('Analysis response missing required fields')
   }
 
