@@ -127,7 +127,13 @@ async function analyzeImage(
 1. series: The name of the anime/manga series
 2. character: The specific character's name
 3. jpKeywords: Comma-separated Japanese search keywords used on Mercari (be specific with product type and year if visible)
-4. searchKeyword: A single, most concise yet descriptive Japanese keyword/phrase for web search (e.g., "ハツネミク フィギュア" or "鬼滅 竈門炭治郎")
+4. searchKeyword: A concise yet specific Japanese search phrase that captures ALL identifying details of this exact product. Include:
+   - Character name
+   - Product type (フィギュア, アクリルスタンド, グッズ, カード, ストラップ, etc.)
+   - Any visible distinguishing features (color, outfit, pose, holding item, etc.)
+   - Series name if not obvious from character alone
+   - Any year/season info visible
+   - Example: "ハツネミク 初音ミク フィギュア グリーン髪" or "鬼滅 竈門炭治郎 ねんどろいど 鬼殺隊"
 5. reasoning: Brief explanation of your analysis
 
 Return ONLY valid JSON in this exact format:
