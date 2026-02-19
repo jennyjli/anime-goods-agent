@@ -19,13 +19,17 @@ export interface SearchResult {
   isAvailable: boolean
 }
 
-export interface TavilySearchResponse {
-  results: Array<{
+export interface SerperSearchResponse {
+  searchParameters: {
+    q: string
+    type: string
+    engine: string
+  }
+  organic: Array<{
+    position: number
     title: string
-    url: string
+    link: string
     snippet: string
-    content?: string
+    date?: string
   }>
-  answer?: string
-  query: string
 }

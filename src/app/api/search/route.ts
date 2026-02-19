@@ -44,12 +44,12 @@ export async function POST(
       )
     }
 
-    // Check for Tavily API key
-    if (!process.env.TAVILY_API_KEY) {
+    // Check for Serper API key
+    if (!process.env.SERPER_API_KEY) {
       return NextResponse.json(
         {
           error: 'Search service not configured',
-          details: 'Tavily API key is not set',
+          details: 'Serper API key is not set',
         },
         { status: 500 }
       )

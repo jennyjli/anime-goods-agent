@@ -1,12 +1,12 @@
-import { SearchResult, TavilySearchResponse } from './types'
+import { SearchResult, SerperSearchResponse } from './types'
 
 /**
- * SearchService - Search Japanese merchandise sites using Tavily API
+ * SearchService - Search Japanese merchandise sites using Serper API
  * Supports: Mercari (jp.mercari.com) and Suruga-Ya (suruga-ya.jp)
  */
 
-const TAVILY_API_KEY = process.env.TAVILY_API_KEY || ''
-const TAVILY_API_URL = 'https://api.tavily.com/search'
+const SERPER_API_KEY = process.env.SERPER_API_KEY || ''
+const SERPER_API_URL = 'https://google.serper.dev/search'
 
 const SITE_RESTRICTIONS = [
   'site:jp.mercari.com',
@@ -161,57 +161,58 @@ function parseSearchResult(
 
 /**
  * Build search query with site restrictions
- * Uses EXACT jpKeywords without modification to ensure sync with UI display
+ * Uses exact keyword with site restrictions for Serper API
  */
-function buildSearchQuery(jpKeywords: string): string {
-  // Use jpKeywords exactly as provided - no modification, translation, or optimization
-  // jpKeywords is already formatted by Gemini analysis
-  const trimmedKeywords = jpKeywords.trim()
+function buildSearchQuery(keyword: string): string {
+  // Use keyword exactly as provided
+  const trimmedKeyword = keyword.trim()
 
-  // Combine with site restrictions
-  const siteQuery = SITE_RESTRICTIONS.join(' OR ')
+  // Combine with site restrictions for Serper format
+  const siteQuery = SITE_RESTRICTIONS.join(' ')
 
-  // Build final query: keywords with site restrictions (no modification)
-  return `(${trimmedKeywords}) (${siteQuery})`
+  // Build final query for Serper
+  return `${trimmedKeyword} ${siteQuery}`
 }
 
 /**
- * Search for anime goods on Japanese sites using Tavily API
+ * Search for anime goods on Japanese sites using Serper API
  */
-export async function searchMerchandise(jpKeywords: string): Promise<SearchResult[]> {
+export async function searchMerchandise(keyword: string): Promise<SearchResult[]> {
   try {
     // Validate API key
-    if (!TAVILY_API_KEY) {
-      console.error('Tavily API key is not configured')
+    if (!SERPER_API_KEY) {
+      console.error('Serper API key is not configured')
       return []
     }
 
-    const query = buildSearchQuery(jpKeywords)
+    const query = buildSearchQuery(keyword)
 
-    const response = await fetch(TAVILY_API_URL, {
+    const response = await fetch(SERPER_API_URL, {
       method: 'POST',
       headers: {
+        'X-API-KEY': SERPER_API_KEY,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        api_key: TAVILY_API_KEY,
-        query: query,
-        search_depth: 'basic',
-        max_results: 10,
-        include_answer: false,
+        q: query,
+        num: 10,
       }),
     })
 
     if (!response.ok) {
-      console.error('Tavily API error:', response.statusText)
+      console.error('Serper API error:', response.statusText)
       return []
     }
 
-    const data: TavilySearchResponse = await response.json()
+    const data: SerperSearchResponse = await response.json()
 
-    // Parse and clean results, filtering out null values (invalid URLs)
-    const results = data.results
-      .map(parseSearchResult)
+    // Parse and clean results from Serper, filtering out null values (invalid URLs)
+    const results = (data.organic || [])
+      .map((item) => parseSearchResult({
+        title: item.title,
+        url: item.link,
+        snippet: item.snippet,
+      }))
       .filter((result): result is SearchResult => result !== null)
 
     // Sort by:
