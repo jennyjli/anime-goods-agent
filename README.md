@@ -1,403 +1,177 @@
 # Anime Goods Agent
 
-An AI-powered platform for discovering anime merchandise through image analysis. Upload a screenshot or artwork of your favorite anime character, and let our agent help you find similar products, pricing, and recommendations.
+A multimodal agent that turns an image of anime merchandise into structured search actions on trusted Japanese marketplaces.
 
-![Demo](demo.gif)
+Upload an image of a collectible item. The agent identifies what it likely is, generates Japanese collector-style keywords, and produces search results scoped to:
 
-## Features
+- Mercari (jp.mercari.com)
+- Surugaya (suruga-ya.jp)
 
-- 🎨 **Dark Mode with Google-Clean Aesthetic** - Modern, minimalist UI design
-- 🖼️ **Intelligent Image Upload** - Drag & drop or click to upload anime images
-- 🤖 **AI Analysis** - Powered by advanced image recognition
-- 🔍 **Product Matching** - Find similar merchandise across verified retailers
-- ⚡ **Fast Processing** - Get results in seconds
-- 📱 **Fully Responsive** - Works seamlessly on desktop and mobile
-- ✨ **Smooth Animations** - Powered by Framer Motion
+The goal is to reduce friction between visual discovery and actionable marketplace search.
+
+![demo gif]
+
+## Why This Exists
+
+Collecting older anime merchandise (10–20+ years old) is high-friction:
+
+- You may not know the official product name.
+- Listings are primarily in Japanese.
+- Small keyword differences drastically affect results.
+- Visual search returns noisy sources.
+- Trusted resale platforms must be searched separately.
+
+This project explores:
+
+> Can a multimodal agent bridge perception → keyword grounding → marketplace action in one step?
+
+## What It Currently Does
+
+### 1. Image Analysis (Gemini 2.5)
+
+Identifies likely:
+- Series
+- Character
+- Item type (e.g., strap, acrylic stand, postcard, figure)
+
+Generates Japanese collector-style search keywords
+
+Provides reasoning trace explaining keyword selection
+
+### 2. Scoped Marketplace Search (Serper.dev)
+
+Uses Serper.dev Google Search API
+
+Strictly scoped to:
+- `site:jp.mercari.com`
+- `site:suruga-ya.jp`
+
+Passes generated Japanese keywords as the query
+
+Extracts:
+- Title
+- Price (¥ format)
+- Condition (New / Used / etc.)
+- Availability (detects 売り切れ / sold out)
+
+### 3. Result Ranking
+
+In-stock items appear first
+
+Then sorted by price
+
+Surugaya results marked with a "Trusted Shop" badge
+
+### 4. Agent Reasoning Trace
+
+A terminal-style sidebar shows:
+- Image analysis progress
+- Keyword generation
+- Marketplace querying
+- Result cleaning + ranking
+
+This makes the perception → reasoning → retrieval pipeline transparent.
+
+## Architecture
+
+```
+Image Upload
+   ↓
+Gemini 2.5 Vision Analysis
+   ↓
+Japanese Keyword Generation
+   ↓
+Serper.dev (site-restricted search)
+   ↓
+Result Cleaning + Ranking
+   ↓
+Structured UI Display
+```
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
-- **UI Pattern**: Google-clean aesthetic with dark mode
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm, yarn, pnpm, or bun
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/anime-goods-agent.git
-cd anime-goods-agent
-```
-
-2. Install dependencies:
-```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
-```
-
-3. Set up environment variables:
-```bash
-cp .env.example .env.local
-```
-
-4. Run the development server:
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
-
-## Project Structure
-
-```
-anime-goods-agent/
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── upload/route.ts           # Legacy image upload endpoint
-│   │   │   ├── analyze/route.ts          # Gemini image analysis endpoint
-│   │   │   └── search/route.ts           # Tavily merchandise search endpoint
-│   │   ├── layout.tsx                    # Root layout with Tailwind styling
-│   │   ├── page.tsx                      # Home page
-│   │   └── globals.css                   # Global styles & Tailwind imports
-│   ├── components/
-│   │   ├── HeroSection.tsx               # Main hero with full agent flow
-│   │   ├── ImageUploadZone.tsx           # Drag & drop upload component
-│   │   ├── AnalysisResults.tsx           # Image analysis results display
-│   │   ├── SearchResults.tsx             # Legacy search results display
-│   │   └── ResultsDisplay.tsx            # Bento grid results with terminal trace
-│   └── lib/
-│       ├── types.ts                      # TypeScript types and interfaces
-│       ├── utils.ts                      # Helper utility functions
-│       ├── useAnalyzeImage.ts            # React hook for image analysis
-│       ├── useSearch.ts                  # React hook for merchandise search
-│       ├── useReasoningTrace.ts          # React hook for agent trace
-│       └── SearchService.ts              # Tavily API search service
-├── public/                               # Static assets
-├── package.json                          # Dependencies
-├── tsconfig.json                         # TypeScript config
-├── next.config.js                        # Next.js config
-├── tailwind.config.ts                    # Tailwind CSS config
-└── postcss.config.js                     # PostCSS config
-```
-
-## Component Details
-
-### HeroSection
-Main landing page component featuring:
-- Animated gradient title
-- Subtitle with key features
-- Image upload zone integration
-- Real-time analysis display
-- Real-time merchandise search
-- Integrated reasoning trace
-- Automatic search-after-analysis flow
-
-### ImageUploadZone
-Interactive image upload component with:
-- Drag & drop support
-- Click to browse
-- Image preview
-- File size validation
-- Animated interactions
-
-### AnalysisResults
-Displays image analysis output with:
-- Series and character identification
-- Japanese search keywords
-- Analysis reasoning explanation
-- Copy-to-clipboard for each field
-- Loading and error states
-
-### SearchResults (Legacy)
-Alternative results display component
-
-### ResultsDisplay (New - Bento Grid)
-Advanced merchandise search results with:
-- **Bento Grid Layout**: Responsive grid that features top item (larger card)
-- **Smart Ranking**: In-stock items always appear first, sorted by price
-- **Trusted Shop Badge**: Suruga-Ya links highlighted with premium badge
-- **Terminal-Style Sidebar**: Real-time reasoning trace showing:
-  - Image analysis progress
-  - Search operations
-  - Result processing
-  - Success/error indicators
-  - Color-coded output (cyan/green/red/yellow)
-- **Expandable Terminal**: Click to minimize/expand the agent trace
-- **View Buttons**: Direct links to purchase on Japanese sites
-- **Status Indicators**: Clear availability and condition badges
-- **Platform Badges**: Distinct visual for Mercari vs Suruga-Ya
-
-### useReasoningTrace Hook
-Manages the agent reasoning state:
-- Track operation progress with typed traces
-- Timestamps for each operation
-- Auto-scrolling terminal output
-- Clear/reset functionality
-
-**Trace Types**: info, success, warning, error
-
-## User Interface Features
-
-### Real-Time Agent Trace Terminal
-The application includes a floating terminal sidebar that shows all operations in real-time:
-
-```
-$ anime-agent --verbose
-> Image selected: figure.jpg
-> Starting image analysis...
-> Initializing Gemini Vision model...
-✓ Analysis complete! Found: Eren Yeager
-> Series: Attack on Titan
-> Initiating Tavily search on Japanese sites...
-> Keywords: 進撃の巨人, エレン, フィギュア, 2015
-> Querying Mercari Japan (jp.mercari.com)...
-> Querying Suruga-Y (suruga-ya.jp)...
-✓ Found 12 total items
-✓ 8 items in stock
-```
-
-**Features:**
-- Color-coded messages (cyan=info, green=success, yellow=warning, red=error)
-- Auto-scrolling to latest message
-- Collapsible sidebar (click chevron to minimize)
-- Timestamps for each operation
-- Shows search progress and results summary
-
-### Bento Grid Results Layout
-Results are displayed in a modern responsive grid:
-- **Featured Item**: First available in-stock item with price gets a larger card
-- **Smart Sorting**: Items sorted by availability (in-stock first) then by price
-- **Platform Indicators**: Blue badges for Mercari, cyan for Suruga-Ya
-- **Trusted Shop Badge**: Gold/amber badge specifically for Suruga-Ya items
-- **Stock Status**: Green checkmark for in-stock, red X for sold out
-- **Condition Tags**: Shows product condition (New, Used, Good, Like New, etc.)
-- **Direct Purchase Links**: "View on Japanese Site" buttons open listings in new tab
-
-### Responsive Design
-- Mobile: 1 column grid
-- Tablet: 2 column grid
-- Desktop: 3 column grid with featured (2x2) items
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Gemini 2.5 (Google Generative AI SDK)
+- Serper.dev API (Google Search wrapper)
 
 ## Environment Variables
 
-Create a `.env.local` file with the following:
+Create `.env.local`:
 
-```env
-# Google Generative AI API Key (for Gemini image analysis)
-# Get your free API key at: https://aistudio.google.com/app/apikey
-GOOGLE_GENERATIVE_AI_API_KEY=your_api_key_here
-
-# Tavily API Key (for Japanese merchandise search on Mercari & Suruga-Ya)
-# Get your free API key at: https://tavily.com
-TAVILY_API_KEY=your_tavily_api_key_here
-
-# Optional: API Configuration
-# NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+GOOGLE_GENERATIVE_AI_API_KEY=your_key
+SERPER_API_KEY=your_key
 ```
 
-**Important:** 
-- Your API keys should be kept private and never committed to version control
-- Use `.env.local` for local development (already in `.gitignore`)
-- For production, configure environment variables in your deployment platform (Vercel, etc.)
-- Both API services offer free tiers with generous usage limits
+**Notes:**
+- Serper.dev replaces the previous Tavily-based implementation.
+- Search is intentionally restricted to Mercari and Surugaya.
+- No direct scraping is performed.
 
-## Development Commands
+## Current Limitations
 
-```bash
-# Development server
-npm run dev
+- No direct marketplace API integration.
+- Availability inferred from snippets.
+- No historical pricing or tracking.
+- Keyword quality depends on image clarity.
 
-# Build for production
-npm run build
+This is intentionally scoped as a multimodal + retrieval prototype.
 
-# Start production server
-npm start
+## Roadmap
 
-# Run linter
-npm run lint
-```
+### MVP (Current Scope)
 
-## Deployment
+- Image upload
+- Multimodal identification (Gemini 2.5)
+- Japanese keyword generation
+- Site-scoped search via Serper.dev
+- Structured result ranking
+- Transparent reasoning trace
 
-This project is optimized for deployment on Vercel:
+**Goal:** reduce discovery friction from minutes of manual searching to seconds.
 
-1. Push your code to GitHub
-2. Import the repository in Vercel
-3. Vercel will automatically detect Next.js and configure the build
-4. Your app will be live!
+### Milestones
 
-Alternative platforms: Netlify, AWS Amplify, Railway, etc.
+#### Phase 1 — Visual Grounding Augmentation
 
-## API Endpoints
+Integrate visual search (Lens-style image search) to supplement Gemini predictions
 
-### POST /api/upload
-Upload an anime image (legacy endpoint).
+Use visually similar matches to refine and disambiguate keywords
 
-**Request:**
-```json
-{
-  "file": File
-}
-```
+Surface exact or near-exact match results separately in the results page
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Image received and queued for analysis",
-  "fileSize": 1024000,
-  "fileName": "anime.jpg",
-  "mimeType": "image/jpeg",
-  "analysisId": "analysis_1234567890"
-}
-```
+Improve franchise / character confidence scoring
 
-### POST /api/analyze
-Analyze an anime image using Gemini 1.5 Flash to identify merchandise details and Japanese search keywords.
+This reduces reliance on model-only inference and introduces retrieval-grounded visual reasoning.
 
-**Request:**
-```json
-{
-  "image": "base64_encoded_image_data",
-  "mimeType": "image/jpeg"
-}
-```
+#### Phase 2 — Retrieval Awareness
 
-**Response (Success):**
-```json
-{
-  "series": "Attack on Titan",
-  "character": "Eren Yeager",
-  "jpKeywords": "進撃の巨人, エレン, フィギュア, 2015",
-  "reasoning": "This is a figure of Eren Yeager from Attack on Titan series, appears to be from 2015 release based on sculpt style. Keywords include series name, character name, product type, and estimated year."
-}
-```
+Smarter availability inference
 
-**Response (Error - Non-anime or blurry image):**
-```json
-{
-  "error": "Image validation failed",
-  "details": "Image does not appear to contain anime-related content"
-}
-```
+Duplicate suppression across marketplaces
 
-**Error Codes:**
-- `400`: Image validation failed (blurry, non-anime, or invalid format)
-- `500`: API configuration error or analysis processing failed
+Improved condition extraction
 
-**Features:**
-- Automatic image validation (must be anime-related and clear)
-- Japanese merchandise expert analysis
-- Mercari-optimized search keywords
-- Detailed reasoning for identification
-- Safety content filtering
+Structured query expansion (e.g., 非売品, 特典 variants)
 
-### POST /api/search
-Search for merchandise on Japanese auction sites (Mercari & Suruga-Ya) using keywords from image analysis.
+#### Phase 3 — Collector Assistance
 
-**Request:**
-```json
-{
-  "jpKeywords": "進撃の巨人, エレン, フィギュア, 2015",
-  "maxPrice": 5000,
-  "condition": "Used",
-  "platform": "Mercari"
-}
-```
+Text refinement ("same illustration variant")
 
-**Response (Success):**
-```json
-{
-  "results": [
-    {
-      "platform": "Mercari",
-      "title": "[進撃の巨人] エレン フィギュア 2015年版",
-      "price": "¥3,500",
-      "condition": "Used",
-      "link": "https://jp.mercari.com/item/m12345678",
-      "isAvailable": true
-    },
-    {
-      "platform": "Suruga-Ya",
-      "title": "進撃の巨人 エレン・イェーガー 1/8 フィギュア",
-      "price": "¥4,200",
-      "condition": "Good",
-      "link": "https://www.suruga-ya.jp/product/8901234",
-      "isAvailable": true
-    }
-  ],
-  "stats": {
-    "totalResults": 12,
-    "availableCount": 8,
-    "unavailableCount": 4,
-    "priceRange": {
-      "min": 2800,
-      "max": 5500,
-      "average": 3875
-    }
-  },
-  "query": "進撃の巨人, エレン, フィギュア, 2015"
-}
-```
+Alternate artwork detection
 
-**Features:**
-- Searches only Mercari (jp.mercari.com) and Suruga-Ya (suruga-ya.jp)
-- Extracts price in Japanese format (¥1,000 or 1000円)
-- Detects item condition (New, Used, Good, Like New, etc.)
-- Checks for sold-out status ('売り切れ')
-- Sorts results by availability and price
-- Provides price statistics and analysis
-- Optional filtering by price, condition, or platform
+Lightweight listing monitoring
 
-## Future Enhancements
+Optional historical price estimation
 
-- [ ] Store analysis history in database
-- [ ] User authentication and accounts
-- [ ] Real-time price tracking across retailers
-- [ ] Integration with Mercari API for direct product matching
-- [ ] Advanced filtering by product type (figures, cards, clothing, etc.)
-- [ ] Social sharing features for trends
-- [ ] Multi-image batch analysis
-- [ ] Custom merchandise recognition model training
-- [ ] Compare pricing across different shops
-- [ ] Wishlist and price alert functionality
-- [ ] Export results to CSV/PDF
-- [ ] Dark mode refinement with theme customization
+## North Star
 
-## Contributing
+A multimodal collector companion that:
 
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, email support@animegoods.agent or open an issue on GitHub.
-
-## Acknowledgments
-
-- [Next.js](https://nextjs.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [Lucide React](https://lucide.dev/)
+- Understands niche visual merchandise
+- Uses visual retrieval + language grounding jointly
+- Generates high-quality marketplace queries
+- Continuously monitors trusted resale platforms
+- Bridges perception → grounding → action over time
