@@ -42,7 +42,7 @@ const BentoCard: React.FC<{
         result.isAvailable
           ? 'border-green-500/30 bg-gradient-to-br from-green-500/5 to-emerald-500/5 hover:border-green-500/60'
           : 'border-red-500/30 bg-gradient-to-br from-red-500/5 to-pink-500/5 hover:border-red-500/60'
-      } ${isFeatured ? 'md:col-span-2 md:row-span-2' : ''} p-5 backdrop-blur-sm`}
+      } p-5 backdrop-blur-sm`}
     >
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
