@@ -56,6 +56,7 @@ export const HeroSection: React.FC = () => {
   // Add search progress traces
   React.useEffect(() => {
     if (searchLoading && showSearch) {
+      addTrace('Simplifying keywords for focused search...', 'info')
       addTrace('Validating product URLs...', 'info')
       addTrace('Querying Mercari Japan (jp.mercari.com/item/...)...', 'info')
       addTrace('Querying Suruga-Ya (suruga-ya.jp/product/detail/...)...', 'info')
