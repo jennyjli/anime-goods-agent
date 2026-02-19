@@ -48,7 +48,7 @@ async function validateImage(
   mimeType: string
 ): Promise<{ isValid: boolean; reason: string }> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
     const response = await model.generateContent([
       {
@@ -100,7 +100,7 @@ async function analyzeImage(
   mimeType: string
 ): Promise<AnalysisResponse> {
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     systemInstruction: SYSTEM_PROMPT,
     safetySettings: [
       {
